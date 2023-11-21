@@ -56,7 +56,7 @@
             <img src="imagenes/logo.png" class="img img-responsive" alt="Logo"/>
             <h4><i>Captura los datos que se solicitan</i></h4>
             <div class="alert alert-info">
-                <form method="post" action=""><!--Inicia formulario-->
+                <form method="post" action="altaproducto.php"><!--Inicia formulario-->
                 <div class="form-group">
                     <h4>Id Producto</h4>
                     <input type="text" name="idproducto" class="form-control" placeholder="Captura Id producto" required/> 
