@@ -1,0 +1,241 @@
+      document.addEventListener('DOMContentLoaded', function() {
+      sessionStorage.removeItem('search')
+      const { dynamicWidgets, refinementList, panel, menu, stats  } = instantsearch.widgets
+      const algoliaClient = algoliasearch('4A1XUQU3F2', '04afda14ed9dcf34ffb9a72aac45e643')
+      const searchClient = {
+        ...algoliaClient,
+        search(requests) {
+          const newRequests = requests.map((request) => {
+            if(!request.params.query || request.params.query.length === 0) {
+              request.params.analytics = false;
+            }
+            return request;
+          });
+          
+          return algoliaClient.search(newRequests);
+        },
+      };        
+
+      const search = instantsearch({
+          indexName: algolia_search_index,
+          searchClient,
+      });
+      const searchBlog = instantsearch({
+          indexName: 'Posts_dev',
+          searchClient,        
+      });
+      var searchParameters = {
+        enablePersonalization: true,
+        enableRules: true,
+        ruleContexts: ['public_search'],
+        hitsPerPage: 4
+        // otros parámetros de búsqueda aquí
+      };
+
+      const tranlateKind = {
+        'curso': 'Curso',
+        'lab': 'Laboratorio',
+        'taller': 'Taller',
+        'premium': 'Empresas',
+        'webinar': 'Webinar',
+        'external': 'Contenido Externo',
+        'carrera': 'Lista',
+      }
+      const dynamicRankingConfig = {
+        events: ['click'],
+        scoring: [
+          {
+            attribute: 'categoria',
+            type: 'ordered',
+            order: 'desc',
+          },
+        ],
+      };
+      const insightsMiddleware = instantsearch.middlewares.createInsightsMiddleware({
+          insightsClient: window.aa,
+          onEvent: (event, aa) => {
+            const { insightsMethod, payload } = event;
+              if (payload.eventName === 'Course clicked') {
+              // aa('convertedObjectIDsAfterSearch',{
+              //   index: payload.index,
+              //   eventName: payload.eventName,
+              //   eventType: payload.eventType,
+              //   objectIDs: payload.objectIDs,
+              //   queryID: payload.queryID,
+              //   timestamp: payload.timestamp,
+              //   userToken: payload.userToken
+              // });
+              aa('convertedObjectIDsAfterSearch', {
+              eventName: 'DynamicReordering',
+              queryID: payload.queryID,
+              objectIDs: payload.objectIDs,
+              clickedObjectIDs: payload.objectIDs,
+              index: payload.index,
+              timestamp: payload.timestamp,
+              userToken: payload.userToken
+              })
+              aa(insightsMethod, payload);
+            }
+          }
+      })
+      var user_token = getCookie('mtc_id')
+      search.use(insightsMiddleware);
+      searchBlog.use(insightsMiddleware);
+      aa('setUserToken', user_token)
+      search.addWidgets([
+          stats({
+            container: '#stats-searched',
+            templates: {
+              text(data, { html }) {
+                let count = '';
+
+                if (data.hasManyResults) {
+                  count += `${data.nbHits} resultados`
+                } else if (data.hasOneResult) {
+                  count += `1 resultado`
+                } else {
+                  count += `sin resultados`
+                }
+                // return html`<span>${count} encontrados en ${data.processingTimeMS}ms</span>`;
+                return html`<span>${count}</span>`
+              },
+            },
+          }),        
+          instantsearch.widgets.hits({
+              container: '#hits-searched',
+                  cssClasses: {
+                  list: 'row w-full',
+                  item: 'col-lg-6 col-lg-2-gap mb-2rem pb-2rem border-bottom',
+                  },
+              templates: {
+              empty: `
+                <div class="flex items-center flex-col col-12  justify-center">
+                  <div class="flex flex-col items-center container">
+                    <figure class="not-found__img">
+                      <img src="/static/public/images/not-found.svg" alt="Not found">
+                    </figure>
+                    <h2 class="font-semibold text-center col-lg-8 not-found__text">Vaya, no hemos encontrado lo que estabas buscando.</h2>
+                  </div>
+                </div>`,
+                  item(hit, bindEvent) {
+                    return `
+                      <div class="card-training relative">
+                        <figure class="training-icon ${hit.kind}">
+                          <img src="${hit.logo_image}" />
+                        </figure>
+                        <div class="card-training__content flex-auto">
+                          <h3 class="card-training__title">
+                            <a ${bindEvent('click', hit, 'Course clicked')}  onClick="${() => sendEvent('click', hit, 'Course clicked')}" href="${hit.external_link}" class="extended">${instantsearch.highlight({ attribute: 'name', hit })}</a>
+                          </h3>
+                          <div class="card-training__meta meta">
+                            <span class="icon-clock mr-2"></span> ${hoursAndMinutes(hit.video_duration_in_minutes)} · <span class="ml-2 capitalize"> ${( tranlateKind.hasOwnProperty(hit.kind))? tranlateKind[hit.kind] : hit.kind}</span>
+                            ${hit.kind === 'carrera' ? `<span class="ml-2 capitalize"> · ${hit.count_courses} cursos</span>` : ''}
+                          </div>
+                          <p class="card-training__description">${hit.description}</p>
+                          <ul class="card-training__tags">
+                            <li>
+                              <div class="tag">${hit.categoria}</div>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                      `
+                  }
+              }
+          }),
+          instantsearch.widgets.configure(searchParameters),
+      ])
+      searchBlog.addWidgets([
+          stats({
+            container: '#stats-searched-blog',
+            templates: {
+              text(data, { html }) {
+                let count = '';
+
+                if (data.hasManyResults) {
+                  count += `${data.nbHits} resultados`
+                } else if (data.hasOneResult) {
+                  count += `1 resultado`
+                } else {
+                  count += `sin resultados`
+                }
+                // return html`<span>${count} encontrados en ${data.processingTimeMS}ms</span>`;
+                return html`<span>${count}</span>`
+              },
+            },
+          }),        
+          instantsearch.widgets.hits({
+              container: '#hits-searched-blog',
+                  cssClasses: {
+                  list: 'row w-full',
+                  item: 'col-lg-6 col-lg-2-gap mb-2rem pb-2rem border-bottom',
+                  },
+              templates: {
+              empty: `
+                <div class="flex items-center flex-col col-12  justify-center">
+                  <div class="flex flex-col items-center container">
+                    <figure class="not-found__img">
+                      <img src="/static/public/images/not-found.svg" alt="Not found">
+                    </figure>
+                    <h2 class="font-semibold text-center col-lg-8 not-found__text">Vaya, no hemos encontrado lo que estabas buscando.</h2>
+                  </div>
+                </div>`,
+                  item(hit) {
+                    return `
+                      <div class="card-post">
+                        <div class="card-post__img" style="background-image: url(${hit.featured_image})"></div>
+                        <div class="card-post__details">
+
+                            <span class="card-post__details__category">${hit.categoria}</span>
+                          <h3 class="card-post__details__title"><a class="extended" href="${hit.external_link}">${hit.name}</a></h3>
+                          <div class="card-post__details__info-data">
+                            <span class="card-post__details__info-data__text">${filterDate(hit.published)}</span>
+                            <span class="card-post__details__info-data__text">${hit.author}</span>
+                          </div>
+                        </div>
+                      </div>                    
+                      `
+                  }
+              }
+          }),
+          instantsearch.widgets.configure(searchParameters),
+      ])
+            
+      search.start(searchParameters);
+      searchBlog.start(searchParameters);
+      const searchBox = document.querySelector('#search input')
+      searchBox.addEventListener('input', (event) => {
+        if (searchBox.value === '') {
+          sessionStorage.removeItem('search')
+        } else {
+          search.helper.setQuery(searchBox.value).search()
+          searchBlog.helper.setQuery(searchBox.value).search()
+          sessionStorage.setItem('search', JSON.stringify(searchBox.value))
+        }
+      })
+      if (searchBox.value !== '') {
+        search.helper.setQuery(searchBox.value).search()
+        searchBlog.helper.setQuery(searchBox.value).search()
+      }
+    })
+    
+    const hoursAndMinutes = (value) => {
+        let valMinutes = parseInt(value)
+        let hours = (parseInt(valMinutes / 60) > 0) ? parseInt(valMinutes / 60) : null
+        let hoursText = (hours > 1) ? ' horas' : ' hora'
+        let minutes = (valMinutes % 60 > 0) ? valMinutes % 60 : null
+        if (hours == null && minutes == null) return '-'
+        const minutesPlural = (minutes > 1) ? ' minutos' : ' minuto'
+        return `${hours != null ? hours + hoursText : ''} ${hours != null && minutes != null ? 'y':''} ${(minutes)? minutes + ' ' + minutesPlural: ''} `
+    }
+    const filterDate = (input) => {
+          if (input === '' || input === undefined || input === null) {
+      return '-'
+    }
+    var options = {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }
+    return new Intl.DateTimeFormat('es-ES', options).format(new Date(input))
+    }

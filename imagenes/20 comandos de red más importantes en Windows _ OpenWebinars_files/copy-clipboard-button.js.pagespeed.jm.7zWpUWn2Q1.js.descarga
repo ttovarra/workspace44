@@ -1,0 +1,10 @@
+const copyText=function(e,value){e.target.classList.add('active')
+setTimeout(()=>{e.target.classList.remove('active')},1000)
+var input=document.createElement('input')
+input.setAttribute('value',value)
+document.body.appendChild(input)
+input.select()
+input.setSelectionRange(0,99999)
+document.execCommand("copy")
+input.remove()}
+//# sourceMappingURL=https://openwebinars.net/static/public/js/copy-clipboard-button.js.pagespeed.sm.8G7GBZRMb3.map

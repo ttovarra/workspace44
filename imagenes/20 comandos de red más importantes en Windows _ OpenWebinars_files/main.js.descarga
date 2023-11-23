@@ -1,0 +1,305 @@
+function $$ (selector, parent = document) {
+  return parent.querySelectorAll(selector)
+}
+
+function _$ (selector, parent = document) {
+  return parent.querySelector(selector)
+}
+
+function delegateEvents (parentSelector, event, childSelector, callback) {
+  _$(parentSelector)[event] = (e) => {
+    if ([...$$(childSelector)].includes(e.target)) {
+      callback(e)
+    }
+  }
+}
+
+function delegateClickEvents (parentSelector, childSelector, callback) {
+  _$(parentSelector).onclick = (e) => {
+    if ([...$$(childSelector)].includes(e.target)) {
+      callback(e)
+    }
+  }
+}
+ // TODO: Refactorizar
+function createTabs (target) {
+  const $tabs = document.querySelectorAll(`#${target}  .tabs__item > .btn`)
+  const $panels = document.querySelectorAll(`[data-panel="${target}"] .tab-pane`)
+  $tabs.forEach(item => {
+    item.addEventListener('click', (event) => {
+      $tabs.forEach(item => {
+        item.parentElement.classList.remove('active')
+      })
+      event.target.parentElement.classList.toggle('active')
+      $panels.forEach(item => {
+        item.classList.remove('show')
+      })
+      let $panel = item.parentElement.dataset.target
+      console.log($panel)
+      document.querySelector($panel).classList.add('show')
+    })
+  })
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+
+  const $tabs = document.querySelectorAll('[data-action="tabs"]')
+  $tabs.forEach(item => {
+
+    const $tabButtonsList = item.querySelectorAll('.tab-button')
+
+    const $panels = document.querySelectorAll(`#${item.dataset.target} > .tab-pane`)
+    console.log('$panels', $panels)
+    $tabButtonsList.forEach(button => {
+
+      button.addEventListener('click', (event) => {
+        $tabButtonsList.forEach(button => {
+          button.parentElement.classList.remove('active')
+        })
+        event.target.parentElement.classList.toggle('active')
+        $panels.forEach(panel => {
+          panel.classList.remove('show')
+        })
+        let $panel = button.parentElement.dataset.target
+        document.querySelector($panel).classList.add('show')
+      })
+    })
+  })
+  
+  const $search = document.querySelector('#search')
+  if ($search) {
+    const $searchButton = _$('#search > button')
+    const $searchForm = _$('#search form')
+    const $searchInput = _$('#search .search-field__input input')
+
+    $searchInput.addEventListener('blur', () => {
+        if($searchInput.value === '') {
+          $search.classList.toggle('active')
+          $searchInput.value = ''
+        }
+      }
+    )
+
+    $searchButton.addEventListener('click', (event) => {
+      event.preventDefault()
+      if($search.classList.contains(['active'])){
+        if($searchInput.value === ''){
+          $search.classList.toggle('active')
+          $searchInput.value = ''
+        }else{
+          $searchForm.submit()
+        }
+      } else {
+        $search.classList.toggle('active')
+        $searchInput.focus()
+        
+      }
+    })
+  }
+
+  const $menu = document.querySelector('#menu')
+  if($menu){
+    $menu.addEventListener('click', (event) => {
+      event.preventDefault()
+      document.querySelector('header').classList.toggle('menu-open')
+      document.querySelector('header').classList.remove('submenu-open')
+      document.querySelectorAll('header .active').forEach(item => {
+        item.classList.remove('active')
+      })
+    })
+    document.querySelectorAll('.menu__item > [data-item]').forEach(item => {
+      if(item.parentElement.classList.contains('has-submenu')){
+        item.addEventListener('click', (event) => {
+          if (window.innerWidth < 1024){
+            event.preventDefault()
+            event.target.parentElement.classList.toggle('active')
+            document.querySelector('header').classList.toggle('submenu-open')
+          }
+        })
+      }
+    })
+
+  }
+
+  createTabs('category-tabs')
+  createTabs('category-tabs-2')
+
+  document.querySelectorAll('.accordion__item > .accordion__header').forEach(item => {
+    item.addEventListener('click', (event) => {
+      event.preventDefault()
+      item.parentElement.classList.toggle('active')
+      const $collapse = item.nextElementSibling
+      $collapse.classList.toggle('active')
+
+      /* if ($collapse.style.maxHeight) {
+        $collapse.style.maxHeight = null;
+      } else {
+        $collapse.style.maxHeight = $collapse.scrollHeight + "px";
+      } */
+    })
+  })
+
+  document.querySelectorAll('[data-action="collapse"]').forEach(item => {
+    item.addEventListener('click', (event) => {
+      event.preventDefault()
+      item.classList.toggle('active')
+      const $collapse = item.nextElementSibling
+      $collapse.classList.toggle('active')
+    })
+  })
+
+  // Training menu
+  if (_$('#training-menu')) {
+    const $training_menu = _$('#training-menu')
+    const $training_menu_close = _$('#training-menu .close')
+    const $training_menu_filters = _$('#training-menu-filters')
+    $training_menu_close.onclick = (event) => {
+      event.preventDefault()
+      $training_menu.classList.remove('active')
+    }
+    $training_menu_filters.onclick = (event) => {
+      event.preventDefault()
+      $training_menu.classList.add('active')
+    }
+  }
+  // Order button
+  if ( _$('.accordion-order-filter__button')) {
+    _$('.accordion-order-filter__button').onclick = (event) => {
+      event.preventDefault()
+      _$('.accordion-order-filter__collapse').classList.toggle('active')
+    }
+  }
+
+  const dropdowns = document.querySelectorAll('.dropdown')
+  
+  document.body.addEventListener('click', () => {
+    dropdowns.forEach(item => {
+      item.classList.remove('active')
+    })
+  })
+
+  dropdowns.forEach(item => {
+    item.querySelector('.dropdown__button').addEventListener('click', (event) => {
+      event.preventDefault()
+      event.stopPropagation()
+      item.classList.toggle('active')
+    })
+  })
+
+  $$('.accordion-course__item > .accordion-course__header').forEach(item => {
+    item.addEventListener('click', (event) => {
+      event.preventDefault()
+      item.parentElement.classList.toggle('active')
+      const $collapse = item.nextElementSibling
+      $collapse.classList.toggle('active')
+
+      /* if ($collapse.style.maxHeight) {
+        $collapse.style.maxHeight = null;
+      } else {
+        $collapse.style.maxHeight = $collapse.scrollHeight + "px";
+      } */
+    })
+  })
+
+  $$('.btn-plus-plan').forEach(item => {
+    item.addEventListener('click', (event) => {
+      event.preventDefault()
+      item.classList.toggle('active')
+      _$(`#${event.target.dataset.target}`).classList.toggle('active')
+    })
+  })
+  
+  /* 
+  if (document.querySelector('.btn-more-details')) {
+    document.querySelector('.btn-more-details').addEventListener('click', (event) => {
+      event.preventDefault()
+      document.querySelector('.btn-more-details > .icon-plus').classList.toggle('active')
+      document.querySelector('.details-suscriptions__table').classList.toggle('active')
+      let textBtn = document.querySelector('.btn-more-details > .btn-more-details__text')
+      if ( textBtn.innerText === 'Más detalles') {
+        textBtn.innerText = 'Menos detalles'
+      } else {
+        textBtn.innerText = 'Más detalles'
+      }
+    })
+  }
+  */
+
+window.addEventListener('scroll', (event) => {
+if(screen.width > 1024) {
+  if (window.scrollY >= 100) {
+    if(!_$('.arrow-button')) {
+      const btn = document.createElement('button')
+      btn.classList.add('arrow-button', 'btn-primary', 'btn')
+      btn.type = 'button'
+      btn.onclick = () => {
+        document.body.scrollIntoView({
+          behavior: 'smooth'
+        });
+      }
+      btn.innerHTML = `<span class="icon-arrow-up"></span>`
+      _$('.main').appendChild(btn)
+      }    
+  } else {
+    if(_$('.arrow-button')) {
+      _$('.arrow-button').remove()
+    }
+  }
+}
+})
+
+const openModal = (modal) => {
+  const $target = _$(modal)
+    $target.classList.add('show')
+    document.body.classList.add('overflow-hide')
+    $target.dispatchEvent(new Event("modal-show"))
+    _$('.close', $target).onclick = (event) => {
+      event.preventDefault()
+      $target.classList.remove('show')
+      document.body.classList.remove('overflow-hide')
+      $target.dispatchEvent(new Event("modal-hide"))
+    }
+}
+
+window.openModal = openModal
+
+$$('[data-toggle="modal"]').forEach(item => {
+  item.addEventListener('click', (event) => {
+    event.preventDefault()
+    const $target = _$(event.target.getAttribute('data-target'))
+    $target.classList.add('show')
+    document.body.classList.add('overflow-hide')
+    $target.dispatchEvent(new Event("modal-show"))
+    _$('.close', $target).onclick = (event) => {
+      event.preventDefault()
+      $target.classList.remove('show')
+      document.body.classList.remove('overflow-hide')
+      $target.dispatchEvent(new Event("modal-hide"))
+    }
+    /*     window.onclick = (event) => {
+      if (event.target == $target) {
+        $target.classList.remove('show');
+        document.body.classList.remove('overflow-hide')
+      }
+    } */
+  })
+})
+
+if (_$('#adroll_allow')) {
+
+  _$('#adroll_allow').onclick = (e) => {
+    e.preventDefault();
+    Cookielaw.createCookielawCookie();
+  }
+}
+  const scrollTo = document.querySelectorAll('[data-scroll-to]')
+  scrollTo.forEach(item => {
+    item.addEventListener('click', (event) => {
+      event.preventDefault()
+      const $target = _$(event.target.getAttribute('data-scroll-to'))
+      $target.scrollIntoView({
+        behavior: 'smooth'
+      });
+    })
+  })
+})
