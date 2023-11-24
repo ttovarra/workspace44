@@ -7,8 +7,8 @@ and open the template in the editor.
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>Conexion a BD mysql Prueba DW TOVAR</title>
-        <!-----------------------------BOOTSTRAP----------------------------->
+        <title>Formulario editar productos TOVAR</title>
+            <!-----------------------------BOOTSTRAP----------------------------->
 <!--Icono-->
 <link rel="Icon" type="img/png" href="img/logoicono.png">
 <!-- Google font -->
@@ -51,70 +51,64 @@ and open the template in the editor.
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 <!-----------------------------/BOOTSTRAP----------------------------->
-
-        
     </head>
-    <body style="background-color: #9ACFEA">
-        <div class="container">
-            <div class="jumbotron">
-              
-                <hr>
-                <div class="thumbnail">
-                    <center>  <h3>Manteniminento de Datos Productos</h3></center>
-                    <hr>
- <center><img src="imagenes/logo.png" class="img img-responsive"/></center>
- <hr>
- <center>
-                   <div class="alert alert-info" role="alert">
-                       <a href="alta.php"><h4>Agregar Nuevos Productos</h4></a>
-                   </div>
-                   <br>
-                   <div class="alert alert-info" role="alert">
-                      <h4>Consulta Productos</h4>
-                      <table border="1" width="100%"><!--Inicia tabla-->
-                          <tr>
-                              <th>Id producto</th>
-                              <th>Producto</th>
-                              <th>Descripcion producto</th>
-                              <th>Cantidad producto</th>
-                              <th>Pecio producto</th>
-                              <th colspan="2">Acciones</th>
-                          </tr>
-                          <?PHP
-                          include "./conexion.php";//conexion a BD
-                          
-                          //consulta a todos los campos y registros de la tabla tproductos
-                          $query="SELECT * FROM tproductos";
-                          
-                          $sql = mysqli_query($connect, $query);
-                          
-                          while ($data = mysqli_fetch_array($sql)) {//inicia while
-                              echo "<tr>";
-                                echo "<td>".$data['idproducto']."</td>";  
-                                echo "<td>".$data['nombre']."</td>";
-                                echo "<td>".$data['descripcion']."</td>"; 
-                                echo "<td>".$data['cantidad']."</td>"; 
-                                echo "<td>".$data['precio']."</td>"; 
-                                echo "<td><a href='baja.php?idproducto=".$data['idproducto']."'>Baja</a></td>";
-                                echo "<td><a href='formeditar.php?idproducto=".$data['idproducto']."'>Editar</a></td>";
-                              echo "</tr>";
-                          }//termina while
-                          
-                          ?>
-                          
-                          
-                          
-                          
-                      </table><!--/Termina tabla-->              
-                       
-                    
-                   </div>
- </center>                   
+    <body>
+          <div class="container">
+                <div class="jumbotron">
+       <h3>Cambiar los datos de productos TOVAR</h3>
                 </div>
-            </div>
-        </div>
-        
-        
+          </div>     
+	<?php
+
+	include "conexion.php";//Llamada a la conexion de BD
+	
+
+	$idproducto = $_GET['idproducto'];//busqueda de campo distintivo
+	
+	
+	$query = "SELECT * FROM tproductos WHERE idproducto='".$idproducto."'";//query de busqueda SQL
+	$sql = mysqli_query($connect, $query);
+	$data = mysqli_fetch_array($sql);//Obtiene los valores de la busqueda en un arreglo y los gurda en la variable $data
+	?>
+	 <div class="container">
+                <div class="jumbotron">
+                   
+	<form method="post" action="editar1.php?idproducto=<?php echo $idproducto; ?>" enctype="multipart/form-data">
+            <div class="form-group">
+	<!--<table cellpadding="200">-->
+        <table align="center">
+	<tr>
+		<td>Nombre</td>
+                <td><input type="text" name="nombre" class="form-control" value="<?php echo $data['nombre']; ?>"></td>
+	</tr>
+	<tr>
+		<td>Descripcion</td>
+		
+		<td><textarea name="descripcion" class="form-control"><?php echo $data['descripcion']; ?></textarea></td>
+		
+	</tr>
+	<tr>
+		<td>Cantidad</td>
+		<td><input type="text" name="cantidad" class="form-control" value="<?php echo $data['cantidad']; ?>"></td>
+	</tr>
+	<tr>
+		<td>Precio</td>
+                <td><input name="precio" class="form-control" value="<?php echo $data['precio']; ?>"></td>
+	</tr>
+	
+	</table>
+	
+	<hr>
+        <center>
+	<input type="submit" class="btn btn-info" value="Editar">
+	<a href="index.php"><input type="button"  class="btn btn-danger" value="Cancelar"></a>
+        </center>
+               </div>
+	</form>
+                        
+                </div> 
+         </div>
+       
 <script src="js/jquery.min.js"></script>
 <script src="js/bootstrap.min.js"></script>
 <script src="js/slick.min.js"></script>
